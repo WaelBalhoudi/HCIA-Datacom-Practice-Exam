@@ -443,20 +443,55 @@ function showResults() {
     const c = q.ans;
     const isCorrect = u === c;
     
+    // Detailed Options Logic
+    let optsHtml = '';
+    q.opts.forEach(opt => {
+      const label = opt.substring(0, opt.indexOf(':'));
+      const text = opt.substring(opt.indexOf(':') + 1);
+      
+      const isRight = c.includes(label);
+      const isSelected = u.includes(label);
+      
+      let cls = "p-3 rounded-lg border text-sm flex items-start gap-3 transition-all ";
+      let icon = '';
+      
+      if (isRight && isSelected) {
+         cls += "bg-green-50 border-green-300 text-green-900";
+         icon = '<svg class="w-5 h-5 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+      } else if (isRight && !isSelected) {
+         cls += "bg-green-50/50 border-green-300 border-dashed text-green-800";
+         icon = '<svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+      } else if (!isRight && isSelected) {
+         cls += "bg-red-50 border-red-300 text-red-900";
+         icon = '<svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+      } else {
+         cls += "bg-slate-50 border-slate-100 text-slate-500";
+      }
+      
+      optsHtml += `<div class="${cls}">${icon || `<span class="w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center font-bold text-xs text-slate-400">${label}</span>`} <span><span class="font-bold mr-1">${label}.</span> ${text}</span></div>`;
+    });
+
     const card = document.createElement('div');
     card.className = `bg-white p-5 rounded-xl border ${isCorrect ? 'border-green-200 shadow-sm' : 'border-red-200 shadow-sm'} fade-in`;
     card.style.animationDelay = `${i * 0.05}s`;
     card.innerHTML = `
-      <div class="flex justify-between items-start mb-2">
-        <h4 class="font-medium text-slate-800 pr-4">${i+1}. ${q.q}</h4>
+      <div class="flex justify-between items-start mb-3">
+        <h4 class="font-medium text-slate-800 pr-4 text-lg">${i+1}. ${q.q}</h4>
         <span class="text-2xl shrink-0 ml-2 ${isCorrect ? 'text-green-500' : 'text-red-500'}">${isCorrect ? '✓' : '✗'}</span>
       </div>
-      <div class="text-xs text-slate-500 mb-3 space-y-1 pl-2 border-l-2 ${isCorrect ? 'border-green-200' : 'border-red-200'}">
-        <div>Your answer: <span class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${u}</span></div>
-        <div>Correct: <span class="font-semibold text-slate-800">${c}</span></div>
-      </div>
-      <div class="bg-slate-50 p-3 rounded-lg text-xs text-slate-600 leading-relaxed border border-slate-100">
-        <strong>Explanation:</strong> ${q.exp}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          ${optsHtml}
+        </div>
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col justify-center">
+            <div class="text-xs text-slate-500 mb-2 space-y-1 pl-3 border-l-2 ${isCorrect ? 'border-green-200' : 'border-red-200'}">
+                <div>Your answer: <span class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${u}</span></div>
+                <div>Correct: <span class="font-semibold text-slate-800">${c}</span></div>
+            </div>
+            <div class="text-xs text-slate-600 leading-relaxed border-t border-slate-200 pt-3 mt-2">
+                <strong class="text-slate-800 block mb-1">Explanation:</strong> ${q.exp}
+            </div>
+        </div>
       </div>
     `;
     list.appendChild(card);
