@@ -47,7 +47,6 @@
 
         <div id="q-hint-area" class="mb-6 flex items-center justify-between">
           <span id="q-badge" class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg border border-slate-200 tracking-wide uppercase">Loading...</span>
-          <span id="timer-display" class="text-xs font-medium text-slate-400">Time elapsed: 00:00</span>
         </div>
         
         <div id="q-text" class="text-xl font-medium text-slate-800 mb-8 leading-relaxed"></div>
@@ -117,7 +116,7 @@
           <span><strong class="text-slate-800">Single Choice:</strong> Look for the blue badge. Select exactly <span class="text-blue-600 font-semibold">ONE</span> option.</span>
         </li>
         <li class="flex gap-3">
-          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 shrink-0 font-bold">2</span>
+          <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-100 text-purple-600 shrink-0 font-bold">2</span>
           <span><strong class="text-slate-800">Multiple Choice:</strong> Look for the purple badge. Select <span class="text-purple-600 font-semibold">ALL correct options</span>. You can click to toggle selection.</span>
         </li>
         <li class="flex gap-3">
@@ -311,11 +310,21 @@ function renderQuestion() {
     const btn = document.createElement('button');
     btn.className = `opt-card w-full text-left px-5 py-4 border-2 rounded-xl text-sm font-medium flex items-start gap-4 transition-all duration-200 ${styleClass}`;
     
-    const indicator = isSelected 
-      ? `<div class="w-6 h-6 shrink-0 flex items-center justify-center rounded-full mt-0.5 ${q.type === 'm' ? 'bg-purple-500 text-white' : 'bg-blue-500 text-white'}">✓</div>`
-      : `<div class="w-6 h-6 shrink-0 border-2 rounded-full mt-0.5 ${q.type === 'm' ? 'border-slate-300' : 'border-slate-300'} flex items-center justify-center"><div class="w-3 h-3 rounded-full bg-transparent"></div></div>`;
+    // Updated indicator logic: Square (rounded) for Multi, Circle (rounded-full) for Single/TF
+    const isRound = q.type === 'm' ? 'rounded' : 'rounded-full';
+    const indicatorClass = `w-6 h-6 shrink-0 flex items-center justify-center ${isRound} mt-0.5`;
+    
+    let indicatorHTML = '';
+    if (isSelected) {
+      const bgClass = q.type === 'm' ? 'bg-purple-500' : 'bg-blue-500';
+      indicatorHTML = `<div class="${indicatorClass} ${bgClass} text-white">✓</div>`;
+    } else {
+      const borderClass = q.type === 'm' ? 'border-slate-300' : 'border-slate-300';
+      const innerClass = q.type === 'm' ? '' : 'w-3 h-3 bg-transparent rounded-full';
+      indicatorHTML = `<div class="${indicatorClass} border-2 ${borderClass} flex items-center justify-center"><div class="${innerClass}"></div></div>`;
+    }
       
-    btn.innerHTML = `${indicator} <span class="leading-relaxed pt-0.5"><span class="font-bold mr-1">${label}.</span> ${text}</span>`;
+    btn.innerHTML = `${indicatorHTML} <span class="leading-relaxed pt-0.5"><span class="font-bold mr-1">${label}.</span> ${text}</span>`;
     
     if (!isFinished) {
         btn.onclick = () => {
