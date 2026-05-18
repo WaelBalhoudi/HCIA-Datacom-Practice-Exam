@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCIA-Datacom Exam Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .opt-card { transition: all 0.15s ease; cursor: pointer; }
+    .opt-card:hover:not(.disabled) { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .opt-card.selected-single { background-color: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+    .opt-card.selected-multi { background-color: #faf5ff; border-color: #8b5cf6; color: #4c1d95; }
+    .opt-card.correct { background-color: #ecfdf5; border-color: #10b981; color: #064e3b; }
+    .opt-card.wrong { background-color: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
+    .opt-card.disabled { pointer-events: none; opacity: 0.9; }
+    .badge-hint { transition: all 0.2s ease; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+  <header class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <h1 class="font-bold text-lg text-slate-900">HCIA-Datacom <span class="text-blue-600">Practice</span></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="help-btn" class="text-slate-400 hover:text-blue-600 transition" title="Instructions">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+        <span id="q-counter" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">0 / 60</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow px-4 py-6 max-w-3xl mx-auto w-full">
+    
+    <div id="quiz-view" class="fade-in">
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 md:p-8 relative overflow-hidden">
+        
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-slate-100">
+          <div id="progress-track" class="h-full bg-blue-500 transition-all duration-300 ease-out" style="width: 0%"></div>
+        </div>
+
+        <div id="q-hint-area" class="mb-6 flex items-center justify-between">
+          <span id="q-badge" class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg border border-slate-200 tracking-wide uppercase">Loading...</span>
+          <span id="timer-display" class="text-xs font-medium text-slate-400">Time elapsed: 00:00</span>
+        </div>
+        
+        <div id="q-text" class="text-xl font-medium text-slate-800 mb-8 leading-relaxed"></div>
+        
+        <div id="opts-area" class="space-y-4 mb-10"></div>
+
+        <div class="flex justify-between items-center pt-6 border-t border-slate-100">
+          <button id="prev-btn" class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">← Previous</button>
+          <button id="next-btn" class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200 rounded-xl transition">Next Question →</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="results-view" class="hidden fade-in">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center mb-10 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+        <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Exam Completed!</h2>
+        <p class="text-slate-500 mb-6">Here is your performance report.</p>
+        
+        <div class="flex justify-center mb-8">
+          <div class="relative w-40 h-40 flex items-center justify-center rounded-full bg-slate-50 border-4 border-slate-100 shadow-inner">
+            <span id="score-pct" class="text-5xl font-black text-slate-800">0%</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 max-w-md mx-auto mb-8">
+          <div class="bg-green-50 p-3 rounded-xl border border-green-100">
+            <div id="score-correct" class="text-xl font-bold text-green-700">0</div>
+            <div class="text-xs text-green-600 font-medium">Correct</div>
+          </div>
+          <div class="bg-red-50 p-3 rounded-xl border border-red-100">
+            <div id="score-wrong" class="text-xl font-bold text-red-700">0</div>
+            <div class="text-xs text-red-600 font-medium">Wrong</div>
+          </div>
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+            <div id="score-total" class="text-xl font-bold text-blue-700">0</div>
+            <div class="text-xs text-blue-600 font-medium">Total</div>
+          </div>
+        </div>
+
+        <div id="msg-box" class="inline-block px-4 py-2 text-sm font-bold rounded-full mb-8 border"></div>
+        
+        <div class="flex flex-col gap-3 max-w-xs mx-auto">
+          <button id="retake-btn" class="w-full px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95">🔄 Retake with New Questions</button>
+        </div>
+      </div>
+
+      <h3 class="text-xl font-bold text-slate-800 mb-6 px-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        Review Answers
+      </h3>
+      <div id="review-list" class="space-y-6 pb-10"></div>
+    </div>
+
+  </main>
+
+  <!-- Instructions Modal -->
+  <div id="help-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 fade-in">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <button id="close-help" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <h3 class="text-xl font-bold text-slate-900 mb-4">How it works</h3>
+      <ul class="space-y-4 text-sm text-slate-600">
+        <li class="flex gap-3">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 shrink-0 font-bold">1</span>
+          <span><strong class="text-slate-800">Single Choice:</strong> Look for the blue badge. Select exactly <span class="text-blue-600 font-semibold">ONE</span> option.</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 shrink-0 font-bold">2</span>
+          <span><strong class="text-slate-800">Multiple Choice:</strong> Look for the purple badge. Select <span class="text-purple-600 font-semibold">ALL correct options</span>. You can click to toggle selection.</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 shrink-0 font-bold">3</span>
+          <span><strong class="text-slate-800">Finish:</strong> Once you answer all questions (or choose to finish early), click "Finish" to see your score and review explanations.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+// Full Question Bank extracted and formatted
+const ALL_Q = [
+  {q:"What is the disadvantage of a tree network?",type:"s",opts:["A: Nodes at higher layers will cause more serious network problems if they become faulty.","B: The tree network uses a hierarchical star structure.","C: The tree network can quickly connect multiple star networks together.","D: It is easy to expand the network scale."],ans:"A",exp:"In a tree topology, higher-layer node failures affect all nodes beneath them."},
+  {q:"A star network is robust and therefore not prone to faults.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"A star network has a single point of failure at the central hub/switch."},
+  {q:"Which of the following lists the seven OSI layers in the correct order, from bottom to top?",type:"s",opts:["A: Physical, data link, network, transport, session, presentation, application","B: Physical, data link, network, session, transport, presentation, application","C: Physical, data link, network, transport, presentation, session, application","D: Physical, data link, transport, network, session, presentation, application"],ans:"A",exp:"OSI model bottom to top: Physical(L1), Data Link(L2), Network(L3), Transport(L4), Session(L5), Presentation(L6), Application(L7)."},
+  {q:"Which of the following port numbers is used by Telnet?",type:"s",opts:["A: 6","B: 23","C: 17","D: 21"],ans:"B",exp:"Telnet uses TCP port 23."},
+  {q:"What are functions of the network layer?",type:"m",opts:["A: Provide logical addresses for network devices.","B: Set up connections between processes on hosts.","C: Send packets from source hosts to destination hosts.","D: Route and forward data packets."],ans:"ACD",exp:"The network layer handles logical addressing, routing, and packet forwarding."},
+  {q:"A MAC address is 48 bits(6 bytes) in length and consists of 12 hexadecimal digits.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"48 bits = 6 bytes = 12 hex digits."},
+  {q:"An ARP Reply packet is broadcast so that all hosts can receive it.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"ARP Reply is UNICAST. ARP Request is broadcast."},
+  {q:"Common data link layer protocols include Ethernet, PPPoE, and PPP.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Ethernet, PPPoE, and PPP are valid L2 protocols."},
+  {q:"Which of the following statements about command functions is false?",type:"s",opts:["A: undo // Deletes a file.","B: pwd // Displays the current directory.","C: dir // Displays information about files in the current directory.","D: more // Displays the content of a text file."],ans:"A",exp:"'undo' reverses config, not delete files."},
+  {q:"Which of the following are types of storage device?",type:"m",opts:["A: SDRAM","B: Flash","C: NVRAM","D: SD card","E: USB flash drive"],ans:"ABCDE",exp:"Huawei devices use all listed storage types."},
+  {q:"Which of the following functions are provided by the VRP?",type:"m",opts:["A: Provides a unified user interface.","B: Implements control plane functions.","C: Implements communication between forwarding and control planes.","D: Eliminates differences between link/network layers of products."],ans:"ABCD",exp:"VRP is Huawei's unified network OS."},
+  {q:"There are two commonly used device management modes: CLI and web system.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Huawei devices support CLI and Web."},
+  {q:"How many IP addresses are available in network segment 172.16.0.0/30?",type:"s",opts:["A: 1","B: 4","C: 2","D: 8"],ans:"C",exp:"/30 has 4 total, 2 usable."},
+  {q:"Which ICMP packet detects connectivity?",type:"s",opts:["A: ICMP Redirect","B: ICMP Echo","C: ICMP port unreachable","D: ICMP host unreachable"],ans:"B",exp:"ICMP Echo is used by ping."},
+  {q:"Which IP addresses can be manually configured for host interfaces?",type:"m",opts:["A: 10.2.3.4","B: 127.0.0.1","C: 224.0.0.18","D: 192.168.100.254"],ans:"AD",exp:"Private IPs are valid. 127 is loopback, 224 is multicast."},
+  {q:"The router discards packets with a TTL value of 0.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Routers discard packets when TTL reaches 0."},
+  {q:"Which field is NOT in 'display ip routing-table'?",type:"s",opts:["A: Destination/Mask","B: Proto","C: Interface","D: AdvRouter"],ans:"D",exp:"AdvRouter is in OSPF LSDB."},
+  {q:"What is the default preference of static routes?",type:"s",opts:["A: 150","B: 10","C: 60","D: 0"],ans:"C",exp:"Static route preference is 60."},
+  {q:"According to longest match rule, which route matches 172.16.10.1?",type:"s",opts:["A: 172.16.10.2/32","B: 172.16.10.0/24","C: 172.16.0.0/16","D: 172.17.10.0/24"],ans:"B",exp:"172.16.10.0/24 matches and is longest."},
+  {q:"Which are link-state routing protocols?",type:"m",opts:["A: BGP","B: IS-IS","C: OSPF","D: Static route"],ans:"BC",exp:"IS-IS and OSPF are link-state."},
+  {q:"Summary route of 172.16.1.0/24, 172.16.2.0/24, and 172.16.5.0/24 is 172.16.0.0/22.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Correct summary is /21."},
+  {q:"Which OSPF packets discover neighbors?",type:"s",opts:["A: LSR","B: DD","C: Hello","D: LSU"],ans:"C",exp:"Hello packets."},
+  {q:"Default OSPF cost for Serial@1.544M, FE, GE?",type:"s",opts:["A: 64, 10, 1","B: 640, 10, 1","C: 64, 10, 1","D: 64, 1, 1"],ans:"D",exp:"Cost=100M/BW. GE rounds to 1."},
+  {q:"OSPF stores link status in which table?",type:"s",opts:["A: LSDB","B: peer table","C: routing table","D: adjacency table"],ans:"A",exp:"LSDB."},
+  {q:"OSPF network types?",type:"m",opts:["A: P2P","B: Broadcast","C: NBMA","D: P2MP"],ans:"ABCD",exp:"All four."},
+  {q:"On MA network, DR Others stay at 2-way.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Type of MAC address 01-00-5e-00-00-01?",type:"s",opts:["A: Unicast","B: Multicast","C: Broadcast","D: Anycast"],ans:"B",exp:"01-00-5E is multicast."},
+  {q:"Switch receives unknown unicast frame. Action?",type:"s",opts:["A: Learns source MAC and discards","B: Learns source MAC and floods","C: Learns source MAC and forwards based on table","D: Does not learn and forwards"],ans:"B",exp:"Learns source, floods frame."},
+  {q:"Which ARP packet requests MAC address?",type:"s",opts:["A: ARP Request","B: ARP Reply","C: RARP Request","D: RARP Reply"],ans:"A",exp:"ARP Request."},
+  {q:"Fields in IEEE 802.3 Ethernet frame?",type:"m",opts:["A: Length","B: Destination MAC","C: Source MAC","D: FCS"],ans:"ABCD",exp:"All listed fields."},
+  {q:"Switch floods unknown unicast and broadcast frames.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"TPID value of 802.1Q-tagged frame?",type:"s",opts:["A: 0x0800","B: 0x8847","C: 0x8100","D: 0x0806"],ans:"C",exp:"0x8100."},
+  {q:"Valid VLAN ID?",type:"s",opts:["A: 0","B: 4095","C: 65536","D: 4094"],ans:"D",exp:"1-4094."},
+  {q:"VLANs CANNOT be assigned based on?",type:"s",opts:["A: Interface","B: MAC address","C: Subnet","D: Transport-layer protocol"],ans:"D",exp:"L4 protocol not supported for VLAN."},
+  {q:"Interfaces process multiple VLAN tags?",type:"m",opts:["A: Access","B: Bridge","C: Trunk","D: Hybrid"],ans:"CD",exp:"Trunk and Hybrid."},
+  {q:"Access interface discards tagged frames immediately.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"If VID matches PVID, it's accepted."},
+  {q:"Root bridge? SW1(4096.102a), SW2(4096.102b), SW3(4096.001a), SW4(8192.112b)",type:"s",opts:["A: SW1","B: SW3","C: SW2","D: SW4"],ans:"B",exp:"SW3 has lowest MAC."},
+  {q:"Default STP Forward Delay?",type:"s",opts:["A: 30s","B: 15s","C: 20s","D: 2s"],ans:"B",exp:"15 seconds."},
+  {q:"Sequence to select superior BPDU?",type:"s",opts:["A: Interface ID, root ID, bridge ID, RPC","B: RPC, root ID, bridge ID, interface ID","C: Root ID, bridge ID, interface ID, RPC","D: Root ID, RPC, bridge ID, interface ID"],ans:"D",exp:"Root ID -> RPC -> Bridge ID -> Port ID."},
+  {q:"Fields in configuration BPDU?",type:"m",opts:["A: Forward Delay","B: Port ID","C: Root ID","D: Bridge ID"],ans:"ABCD",exp:"All listed."},
+  {q:"Switch runs RSTP by default.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True on Huawei."},
+  {q:"Command for VLAN termination on sub-interface?",type:"s",opts:["A: port default vlan","B: port trunk pvid","C: dot1q termination vid","D: port link-type hybrid"],ans:"C",exp:"dot1q termination vid."},
+  {q:"False statement about L3 switch?",type:"s",opts:["A: Can forward only at L3","B: Can route through VLANIF","C: Can forward at L2 and L3","D: Can route through L3 interfaces"],ans:"A",exp:"L3 switches do both L2 and L3."},
+  {q:"False statement about L3 switch routing?",type:"s",opts:["A: If dest MAC matches VLANIF, sends to routing","B: If dest IP not local, looks up routing","C: Forwards without re-encapsulating frame","D: Source/dest MAC replaced"],ans:"C",exp:"Must re-encapsulate frame."},
+  {q:"Switch port type to router for inter-VLAN?",type:"m",opts:["A: Hybrid","B: Trunk","C: Bridge","D: Access"],ans:"AB",exp:"Trunk or Hybrid."},
+  {q:"MAC addresses change each hop in L3 comms.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Default LACP interface priority?",type:"s",opts:["A: 4096","B: 0","C: 32768","D: 8192"],ans:"C",exp:"32768."},
+  {q:"Config that CAN differ on Eth-Trunk members?",type:"s",opts:["A: Spanning tree configurations","B: Interface rate","C: Duplex mode","D: VLAN configurations"],ans:"A",exp:"STP can differ; others must match."},
+  {q:"False statement about LACP active links?",type:"s",opts:["A: Ends exchange LACPDUs to select Actor","B: Actor selects based on priority/number","C: Actor notifies partner based on physical status","D: Partner determines based on Actor"],ans:"C",exp:"Notifies via LACPDU, not physical status."},
+  {q:"LACPDU fields to select Actor?",type:"m",opts:["A: Interface number","B: Device MAC address","C: Device priority","D: Interface priority"],ans:"BC",exp:"Device Priority then MAC."},
+  {q:"Lower threshold for active links ensures min bandwidth.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Default increment of ACL rule IDs?",type:"s",opts:["A: 20","B: 15","C: 5","D: 10"],ans:"C",exp:"5."},
+  {q:"Range of advanced ACLs?",type:"s",opts:["A: 4000-4999","B: 3000-3999","C: 2000-2999","D: 6000-6999"],ans:"B",exp:"3000-3999."},
+  {q:"ACL 4010 matches which fields?",type:"s",opts:["A: Source IP","B: Source & Dest IP","C: Source MAC, Dest MAC, L2 protocol","D: Packet header and offset"],ans:"C",exp:"L2 ACL matches MACs and L2 protocol."},
+  {q:"Rule: permit tcp source any destination 192.168.1.1 0 dest-port eq 80. Matches?",type:"m",opts:["A: Dst:192.168.1.2, Port:80, TCP","B: Dst:192.168.1.1, Port:80, UDP","C: Dst:192.168.1.1, Port:80, TCP","D: Src:10.0.0.1, Dst:192.168.1.1, Port:80, TCP"],ans:"CD",exp:"Must be TCP, Dest=192.168.1.1, Port=80."},
+  {q:"Advanced ACL can match source/dest port numbers.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Role NOT in AAA architecture?",type:"s",opts:["A: User","B: AAA server","C: Network access server(NAS)","D: Portal server"],ans:"D",exp:"Portal is not a core AAA role."},
+  {q:"RADIUS transport protocol and auth port?",type:"s",opts:["A: UDP, 1813","B: UDP, 1812","C: TCP, 1813","D: TCP, 1812"],ans:"B",exp:"UDP, 1812."},
+  {q:"Authorization mode NOT supported by AAA?",type:"s",opts:["A: Non-authorization","B: Local authorization","C: Mutual authorization","D: Remote authorization"],ans:"C",exp:"Mutual is not supported."},
+  {q:"Concepts involved in AAA?",type:"m",opts:["A: Accounting","B: Authentication","C: Authorization","D: Automation"],ans:"ABC",exp:"AuthN, AuthZ, Accounting."},
+  {q:"NAS determines domain based on username.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"NAT tech using ONLY interface address?",type:"s",opts:["A: Easy IP","B: NAT Server","C: Dynamic NAT","D: Static NAT"],ans:"A",exp:"Easy IP."},
+  {q:"NAT tech for external access to specific TCP port?",type:"s",opts:["A: Static NAT","B: NAT Server","C: Dynamic NAT","D: NAPT"],ans:"B",exp:"NAT Server."},
+  {q:"NOT translated by NAPT?",type:"m",opts:["A: Destination IP address","B: Source port number","C: Destination port number","D: Source IP address"],ans:"AC",exp:"NAPT translates Source IP & Port."},
+  {q:"NAT tech enabling external proactive access?",type:"m",opts:["A: Static NAT","B: NAT Server","C: NAPT","D: Easy IP"],ans:"AB",exp:"Static NAT and NAT Server."},
+  {q:"NAPT translates IP and port for 1:N mapping.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"802.11 protocol working ONLY on 5 GHz?",type:"s",opts:["A: 802.11ax","B: 802.11n","C: 802.11ac","D: 802.11g"],ans:"C",exp:"802.11ac (Wi-Fi 5) is 5 GHz only."},
+  {q:"CAPWAP message delivering config files?",type:"s",opts:["A: Configuration Update Request","B: Image Data Request","C: Configuration Update Response","D: Image Data Response"],ans:"A",exp:"Config Update Request."},
+  {q:"Frame type to broadcast SSID?",type:"s",opts:["A: Probe Request","B: Probe Response","C: Association Request","D: Beacon"],ans:"D",exp:"Beacon."},
+  {q:"Modes to dynamically discover AC?",type:"m",opts:["A: Manual IP","B: Broadcast","C: DHCP","D: DNS"],ans:"BCD",exp:"Broadcast, DHCP, DNS."},
+  {q:"CAPWAP tunnels both kept alive using Keepalive?",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Only Control tunnel uses Keepalive."},
+  {q:"PPPoE packet type to TERMINATE session?",type:"s",opts:["A: PADS","B: PADT","C: PADO","D: PADR"],ans:"B",exp:"PADT."},
+  {q:"LCP response to unmatched parameter?",type:"s",opts:["A: Configure-Ack","B: Configure-Reject","C: Configure-Nak","D: Authenticate-Nak"],ans:"C",exp:"Configure-Nak."},
+  {q:"Authentication protocols supported by PPP?",type:"m",opts:["A: EAP-TLS","B: PAP","C: EAP-MD5","D: CHAP"],ans:"BD",exp:"PAP and CHAP."},
+  {q:"PPP negotiation packet types?",type:"m",opts:["A: LCP","B: PAP","C: CHAP","D: IPCP"],ans:"ABCD",exp:"All listed."},
+  {q:"CHAP password carried in plaintext?",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"False, uses MD5 hash."},
+  {q:"SNMPv2c trap requiring response?",type:"s",opts:["A: Inform","B: Trap","C: Response","D: Notification"],ans:"A",exp:"Inform."},
+  {q:"SNMPv2c batch query?",type:"s",opts:["A: Get-Request","B: Get-Next-Request","C: GetBulk","D: GetContinue"],ans:"C",exp:"GetBulk."},
+  {q:"Attributes defined in MIB?",type:"m",opts:["A: Status","B: Data type","C: Access permission","D: OID"],ans:"ABCD",exp:"All listed."},
+  {q:"New SNMPv3 security features?",type:"m",opts:["A: Digital signature","B: MD5 auth","C: DES encryption","D: RSA encryption"],ans:"BC",exp:"MD5 auth and DES encryption."},
+  {q:"Devices run agent, NMS interacts via SNMP.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"IPv6 address length?",type:"s",opts:["A: 64 bits","B: 96 bits","C: 256 bits","D: 128 bits"],ans:"D",exp:"128 bits."},
+  {q:"Abbreviated version of 2001:0AF8:0000:1234:FB00:0000:5000:EF14?",type:"s",opts:["A: 2001:AF8:0000:1234:FB:0000:5000:EF14","B: 2001:0AF8::1234:FB00::5000:EF14","C: 2001:AF8:0:1234:FB00::5000:EF14","D: 2001:0AF8:0000:1234:FB00:0000:5:EF14"],ans:"C",exp:"Remove leading zeros, one :: for zeros."},
+  {q:"IPv6 header field NOT in IPv4?",type:"s",opts:["A: Payload length","B: Hop limit","C: Next header","D: Flow label"],ans:"D",exp:"Flow label."},
+  {q:"IPv6 address types?",type:"m",opts:["A: Multicast","B: Broadcast","C: Unicast","D: Anycast"],ans:"ACD",exp:"Unicast, Multicast, Anycast."},
+  {q:"IPv6 unicast: 64-bit prefix + 64-bit interface ID.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"NFV module virtualizing hardware?",type:"s",opts:["A: OSS","B: MANO","C: VNF","D: NFVI"],ans:"D",exp:"NFVI."},
+  {q:"SDN interface between controller and switch?",type:"s",opts:["A: RESTCONF","B: RESTful","C: Northbound","D: Southbound"],ans:"D",exp:"Southbound."},
+  {q:"OpenFlow packets FROM controller TO switch?",type:"m",opts:["A: Controller-to-Switch","B: Symmetric","C: Switch-to-Controller","D: Asynchronous"],ans:"AB",exp:"Controller-to-Switch and Symmetric."},
+  {q:"NFV features?",type:"m",opts:["A: Partition division","B: Isolation","C: Encapsulation","D: Hardware independence"],ans:"ABCD",exp:"All listed."},
+  {q:"OpenFlow switch forwards based on flow table.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Collection of objects with same attributes/methods?",type:"s",opts:["A: class","B: init","C: function","D: def"],ans:"A",exp:"Class."},
+  {q:"telnetlib method to WRITE data?",type:"s",opts:["A: read_all()","B: close()","C: write()","D: read_very_eager()"],ans:"C",exp:"write()."},
+  {q:"Valid Python identifiers?",type:"m",opts:["A: Digits","B: @ signs","C: Letters","D: Underscores"],ans:"ACD",exp:"Letters, digits, underscores."},
+  {q:"Compiled high-level languages?",type:"m",opts:["A: C","B: C++","C: Java","D: Python"],ans:"AB",exp:"C and C++."},
+  {q:"Python uses indentation for code blocks.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Mask size for router-to-router?",type:"s",opts:["A: /28","B: /29","C: /30","D: /24"],ans:"C",exp:"/30 provides 2 usable IPs."},
+  {q:"Prevent access to unauthorized DHCP routers?",type:"s",opts:["A: IPSG","B: DHCP relay","C: DHCP snooping","D: Port security"],ans:"C",exp:"DHCP snooping."},
+  {q:"Improve campus reliability?",type:"m",opts:["A: iStack","B: CSS","C: VRRP","D: Link aggregation"],ans:"ABCD",exp:"All improve reliability."},
+  {q:"Campus network lifecycle stages?",type:"m",opts:["A: Planning","B: Deployment","C: O&M","D: Optimization"],ans:"ABCD",exp:"All listed."},
+  {q:"Servers/printers use fixed IPs.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."}
+];
+
+let currentQs = [];
+let userAnswers = {}; // Stores index -> string of letters "A" or "AC"
+let currentIndex = 0;
+let isFinished = false;
+let startTime = null;
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function initTest() {
+  currentQs = shuffleArray([...ALL_Q]).slice(0, 60);
+  userAnswers = {};
+  currentIndex = 0;
+  isFinished = false;
+  startTime = new Date();
+  document.getElementById('quiz-view').classList.remove('hidden');
+  document.getElementById('results-view').classList.add('hidden');
+  document.getElementById('next-btn').textContent = 'Next Question →';
+  renderQuestion();
+}
+
+function getHintText(type) {
+  if (type === 'm') return "Select all that apply (Multiple answers possible)";
+  if (type === 'tf') return "Select one (Right / Wrong)";
+  return "Select one answer";
+}
+
+function renderQuestion() {
+  const q = currentQs[currentIndex];
+  
+  // UI Updates
+  document.getElementById('q-counter').textContent = `${currentIndex + 1} / ${currentQs.length}`;
+  document.getElementById('progress-track').style.width = `${((currentIndex + 1) / currentQs.length) * 100}%`;
+  
+  const badge = document.getElementById('q-badge');
+  badge.textContent = getHintText(q.type);
+  
+  if (q.type === 'm') {
+    badge.className = "inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-lg border border-purple-200 tracking-wide uppercase badge-hint";
+  } else {
+    badge.className = "inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-200 tracking-wide uppercase badge-hint";
+  }
+
+  document.getElementById('q-text').textContent = `${currentIndex + 1}. ${q.q}`;
+  
+  const optsArea = document.getElementById('opts-area');
+  optsArea.innerHTML = '';
+  
+  const currentAns = userAnswers[currentIndex] || "";
+  
+  q.opts.forEach(opt => {
+    const label = opt.substring(0, opt.indexOf(':'));
+    const text = opt.substring(opt.indexOf(':') + 1);
+    
+    const isSelected = currentAns.includes(label);
+    
+    // Styling based on selection state and type
+    let styleClass = "border-slate-200 bg-white hover:border-blue-300";
+    if (isSelected) {
+      if (q.type === 'm') {
+        styleClass = "border-purple-500 bg-purple-50 text-purple-800 ring-1 ring-purple-500";
+      } else {
+        styleClass = "border-blue-500 bg-blue-50 text-blue-800 ring-1 ring-blue-500";
+      }
+    }
+    
+    // Checkbox/Radio indicator
+    const checkIcon = q.type === 'm' ? 'checkbox' : 'radio';
+    
+    const btn = document.createElement('button');
+    btn.className = `opt-card w-full text-left px-5 py-4 border-2 rounded-xl text-sm font-medium flex items-start gap-4 transition-all duration-200 ${styleClass}`;
+    
+    const indicator = isSelected 
+      ? `<div class="w-6 h-6 shrink-0 flex items-center justify-center rounded-full mt-0.5 ${q.type === 'm' ? 'bg-purple-500 text-white' : 'bg-blue-500 text-white'}">✓</div>`
+      : `<div class="w-6 h-6 shrink-0 border-2 rounded-full mt-0.5 ${q.type === 'm' ? 'border-slate-300' : 'border-slate-300'} flex items-center justify-center"><div class="w-3 h-3 rounded-full bg-transparent"></div></div>`;
+      
+    btn.innerHTML = `${indicator} <span class="leading-relaxed pt-0.5"><span class="font-bold mr-1">${label}.</span> ${text}</span>`;
+    
+    if (!isFinished) {
+        btn.onclick = () => {
+            let ans = userAnswers[currentIndex] || "";
+            if (q.type === 'm') {
+                // Toggle for multi
+                if (ans.includes(label)) {
+                    ans = ans.replace(label, "");
+                } else {
+                    ans += label;
+                    ans = ans.split('').sort().join(''); // Keep sorted
+                }
+            } else {
+                // Set for single/tf
+                ans = label;
+            }
+            userAnswers[currentIndex] = ans;
+            renderQuestion();
+        };
+    } else {
+        btn.classList.add('disabled');
+    }
+    
+    optsArea.appendChild(btn);
+  });
+  
+  // Nav buttons
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').textContent = currentIndex === currentQs.length - 1 ? 'Finish' : 'Next Question →';
+}
+
+document.getElementById('prev-btn').onclick = () => { if(currentIndex > 0) { currentIndex--; renderQuestion(); } };
+document.getElementById('next-btn').onclick = () => {
+  if(currentIndex < currentQs.length - 1) { currentIndex++; renderQuestion(); }
+  else { showResults(); }
+};
+document.getElementById('help-btn').onclick = () => document.getElementById('help-modal').classList.remove('hidden');
+document.getElementById('close-help').onclick = () => document.getElementById('help-modal').classList.add('hidden');
+
+function showResults() {
+  isFinished = true;
+  let correct = 0;
+  let wrong = 0;
+  
+  currentQs.forEach((q, i) => {
+    const u = (userAnswers[i] || '').split('').sort().join('');
+    const c = q.ans;
+    if(u === c) correct++;
+    else wrong++;
+  });
+  
+  const total = currentQs.length;
+  const pct = Math.round((correct / total) * 100);
+  
+  document.getElementById('score-pct').textContent = `${pct}%`;
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-wrong').textContent = wrong;
+  document.getElementById('score-total').textContent = total;
+  
+  const msgBox = document.getElementById('msg-box');
+  if(pct >= 85) { msgBox.textContent = "🌟 Excellent! You are ready."; msgBox.className = "inline-block px-4 py-2 text-sm font-bold rounded-full mb-8 border bg-green-100 text-green-700 border-green-200"; }
+  else if(pct >= 60) { msgBox.textContent = "👍 Good job! Review weak areas."; msgBox.className = "inline-block px-4 py-2 text-sm font-bold rounded-full mb-8 border bg-blue-100 text-blue-700 border-blue-200"; }
+  else { msgBox.textContent = "📚 Keep studying!"; msgBox.className = "inline-block px-4 py-2 text-sm font-bold rounded-full mb-8 border bg-orange-100 text-orange-700 border-orange-200"; }
+  
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  
+  currentQs.forEach((q, i) => {
+    const u = (userAnswers[i] || '').split('').sort().join('') || 'None';
+    const c = q.ans;
+    const isCorrect = u === c;
+    
+    const card = document.createElement('div');
+    card.className = `bg-white p-5 rounded-xl border ${isCorrect ? 'border-green-200 shadow-sm' : 'border-red-200 shadow-sm'} slide-up`;
+    card.innerHTML = `
+      <div class="flex justify-between items-start mb-2">
+        <h4 class="font-medium text-slate-800 pr-4">${i+1}. ${q.q}</h4>
+        <span class="text-2xl shrink-0 ml-2 ${isCorrect ? 'text-green-500' : 'text-red-500'}">${isCorrect ? '✓' : '✗'}</span>
+      </div>
+      <div class="text-xs text-slate-500 mb-3 space-y-1 pl-2 border-l-2 ${isCorrect ? 'border-green-200' : 'border-red-200'}">
+        <div>Your answer: <span class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${u}</span></div>
+        <div>Correct: <span class="font-semibold text-slate-800">${c}</span></div>
+      </div>
+      <div class="bg-slate-50 p-3 rounded-lg text-xs text-slate-600 leading-relaxed border border-slate-100">
+        <strong>Explanation:</strong> ${q.exp}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+  
+  document.getElementById('quiz-view').classList.add('hidden');
+  document.getElementById('results-view').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+document.getElementById('retake-btn').onclick = initTest;
+
+initTest();
+</script>
+</body>
+</html>
+
