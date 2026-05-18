@@ -12,10 +12,6 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .opt-card { transition: all 0.15s ease; cursor: pointer; }
     .opt-card:hover:not(.disabled) { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .opt-card.selected-single { background-color: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
-    .opt-card.selected-multi { background-color: #faf5ff; border-color: #8b5cf6; color: #4c1d95; }
-    .opt-card.correct { background-color: #ecfdf5; border-color: #10b981; color: #064e3b; }
-    .opt-card.wrong { background-color: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
     .opt-card.disabled { pointer-events: none; opacity: 0.9; }
     .badge-hint { transition: all 0.2s ease; }
   </style>
@@ -128,7 +124,7 @@
   </div>
 
 <script>
-// Full Question Bank extracted and formatted
+// Full Question Bank extracted exactly from the PDF
 const ALL_Q = [
   {q:"What is the disadvantage of a tree network?",type:"s",opts:["A: Nodes at higher layers will cause more serious network problems if they become faulty.","B: The tree network uses a hierarchical star structure.","C: The tree network can quickly connect multiple star networks together.","D: It is easy to expand the network scale."],ans:"A",exp:"In a tree topology, higher-layer node failures affect all nodes beneath them."},
   {q:"A star network is robust and therefore not prone to faults.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"A star network has a single point of failure at the central hub/switch."},
@@ -138,106 +134,166 @@ const ALL_Q = [
   {q:"A MAC address is 48 bits(6 bytes) in length and consists of 12 hexadecimal digits.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"48 bits = 6 bytes = 12 hex digits."},
   {q:"An ARP Reply packet is broadcast so that all hosts can receive it.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"ARP Reply is UNICAST. ARP Request is broadcast."},
   {q:"Common data link layer protocols include Ethernet, PPPoE, and PPP.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Ethernet, PPPoE, and PPP are valid L2 protocols."},
-  {q:"Which of the following statements about command functions is false?",type:"s",opts:["A: undo // Deletes a file.","B: pwd // Displays the current directory.","C: dir // Displays information about files in the current directory.","D: more // Displays the content of a text file."],ans:"A",exp:"'undo' reverses config, not delete files."},
+  {q:"Which of the following statements about command functions is false?",type:"s",opts:["A: <Huawei>undo // Deletes a file.","B: <Huawei>pwd // Displays the current directory.","C: <Huawei>dir // Displays information about files in the current directory.","D: <Huawei>more // Displays the content of a text file."],ans:"A",exp:"'undo' reverses config, not delete files."},
   {q:"Which of the following are types of storage device?",type:"m",opts:["A: SDRAM","B: Flash","C: NVRAM","D: SD card","E: USB flash drive"],ans:"ABCDE",exp:"Huawei devices use all listed storage types."},
   {q:"Which of the following functions are provided by the VRP?",type:"m",opts:["A: Provides a unified user interface.","B: Implements control plane functions.","C: Implements communication between forwarding and control planes.","D: Eliminates differences between link/network layers of products."],ans:"ABCD",exp:"VRP is Huawei's unified network OS."},
   {q:"There are two commonly used device management modes: CLI and web system.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Huawei devices support CLI and Web."},
   {q:"How many IP addresses are available in network segment 172.16.0.0/30?",type:"s",opts:["A: 1","B: 4","C: 2","D: 8"],ans:"C",exp:"/30 has 4 total, 2 usable."},
-  {q:"Which ICMP packet detects connectivity?",type:"s",opts:["A: ICMP Redirect","B: ICMP Echo","C: ICMP port unreachable","D: ICMP host unreachable"],ans:"B",exp:"ICMP Echo is used by ping."},
-  {q:"Which IP addresses can be manually configured for host interfaces?",type:"m",opts:["A: 10.2.3.4","B: 127.0.0.1","C: 224.0.0.18","D: 192.168.100.254"],ans:"AD",exp:"Private IPs are valid. 127 is loopback, 224 is multicast."},
+  {q:"Which of the following ICMP packets is used to detect the connectivity between the source and destination IP addresses?",type:"s",opts:["A: ICMP Redirect","B: ICMP Echo","C: ICMP port unreachable","D: ICMP host unreachable"],ans:"B",exp:"ICMP Echo is used by ping."},
+  {q:"Which of the following IP addresses can be manually configured and used by host interfaces?",type:"m",opts:["A: 10.2.3.4","B: 127.0.0.1","C: 224.0.0.18","D: 192.168.100.254"],ans:"AD",exp:"Private IPs are valid. 127 is loopback, 224 is multicast."},
   {q:"The router discards packets with a TTL value of 0.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"Routers discard packets when TTL reaches 0."},
-  {q:"Which field is NOT in 'display ip routing-table'?",type:"s",opts:["A: Destination/Mask","B: Proto","C: Interface","D: AdvRouter"],ans:"D",exp:"AdvRouter is in OSPF LSDB."},
+  {q:"Which of the following fields is NOT included in the output of the 'display ip routing-table' command?",type:"s",opts:["A: Destination/Mask","B: Proto","C: Interface","D: AdvRouter"],ans:"D",exp:"AdvRouter is in OSPF LSDB."},
   {q:"What is the default preference of static routes?",type:"s",opts:["A: 150","B: 10","C: 60","D: 0"],ans:"C",exp:"Static route preference is 60."},
-  {q:"According to longest match rule, which route matches 172.16.10.1?",type:"s",opts:["A: 172.16.10.2/32","B: 172.16.10.0/24","C: 172.16.0.0/16","D: 172.17.10.0/24"],ans:"B",exp:"172.16.10.0/24 matches and is longest."},
-  {q:"Which are link-state routing protocols?",type:"m",opts:["A: BGP","B: IS-IS","C: OSPF","D: Static route"],ans:"BC",exp:"IS-IS and OSPF are link-state."},
-  {q:"Summary route of 172.16.1.0/24, 172.16.2.0/24, and 172.16.5.0/24 is 172.16.0.0/22.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Correct summary is /21."},
-  {q:"Which OSPF packets discover neighbors?",type:"s",opts:["A: LSR","B: DD","C: Hello","D: LSU"],ans:"C",exp:"Hello packets."},
-  {q:"Default OSPF cost for Serial@1.544M, FE, GE?",type:"s",opts:["A: 64, 10, 1","B: 640, 10, 1","C: 64, 10, 1","D: 64, 1, 1"],ans:"D",exp:"Cost=100M/BW. GE rounds to 1."},
-  {q:"OSPF stores link status in which table?",type:"s",opts:["A: LSDB","B: peer table","C: routing table","D: adjacency table"],ans:"A",exp:"LSDB."},
-  {q:"OSPF network types?",type:"m",opts:["A: P2P","B: Broadcast","C: NBMA","D: P2MP"],ans:"ABCD",exp:"All four."},
-  {q:"On MA network, DR Others stay at 2-way.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Type of MAC address 01-00-5e-00-00-01?",type:"s",opts:["A: Unicast","B: Multicast","C: Broadcast","D: Anycast"],ans:"B",exp:"01-00-5E is multicast."},
-  {q:"Switch receives unknown unicast frame. Action?",type:"s",opts:["A: Learns source MAC and discards","B: Learns source MAC and floods","C: Learns source MAC and forwards based on table","D: Does not learn and forwards"],ans:"B",exp:"Learns source, floods frame."},
-  {q:"Which ARP packet requests MAC address?",type:"s",opts:["A: ARP Request","B: ARP Reply","C: RARP Request","D: RARP Reply"],ans:"A",exp:"ARP Request."},
-  {q:"Fields in IEEE 802.3 Ethernet frame?",type:"m",opts:["A: Length","B: Destination MAC","C: Source MAC","D: FCS"],ans:"ABCD",exp:"All listed fields."},
-  {q:"Switch floods unknown unicast and broadcast frames.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"TPID value of 802.1Q-tagged frame?",type:"s",opts:["A: 0x0800","B: 0x8847","C: 0x8100","D: 0x0806"],ans:"C",exp:"0x8100."},
-  {q:"Valid VLAN ID?",type:"s",opts:["A: 0","B: 4095","C: 65536","D: 4094"],ans:"D",exp:"1-4094."},
-  {q:"VLANs CANNOT be assigned based on?",type:"s",opts:["A: Interface","B: MAC address","C: Subnet","D: Transport-layer protocol"],ans:"D",exp:"L4 protocol not supported for VLAN."},
-  {q:"Interfaces process multiple VLAN tags?",type:"m",opts:["A: Access","B: Bridge","C: Trunk","D: Hybrid"],ans:"CD",exp:"Trunk and Hybrid."},
-  {q:"Access interface discards tagged frames immediately.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"If VID matches PVID, it's accepted."},
-  {q:"Root bridge? SW1(4096.102a), SW2(4096.102b), SW3(4096.001a), SW4(8192.112b)",type:"s",opts:["A: SW1","B: SW3","C: SW2","D: SW4"],ans:"B",exp:"SW3 has lowest MAC."},
-  {q:"Default STP Forward Delay?",type:"s",opts:["A: 30s","B: 15s","C: 20s","D: 2s"],ans:"B",exp:"15 seconds."},
-  {q:"Sequence to select superior BPDU?",type:"s",opts:["A: Interface ID, root ID, bridge ID, RPC","B: RPC, root ID, bridge ID, interface ID","C: Root ID, bridge ID, interface ID, RPC","D: Root ID, RPC, bridge ID, interface ID"],ans:"D",exp:"Root ID -> RPC -> Bridge ID -> Port ID."},
-  {q:"Fields in configuration BPDU?",type:"m",opts:["A: Forward Delay","B: Port ID","C: Root ID","D: Bridge ID"],ans:"ABCD",exp:"All listed."},
-  {q:"Switch runs RSTP by default.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True on Huawei."},
-  {q:"Command for VLAN termination on sub-interface?",type:"s",opts:["A: port default vlan","B: port trunk pvid","C: dot1q termination vid","D: port link-type hybrid"],ans:"C",exp:"dot1q termination vid."},
-  {q:"False statement about L3 switch?",type:"s",opts:["A: Can forward only at L3","B: Can route through VLANIF","C: Can forward at L2 and L3","D: Can route through L3 interfaces"],ans:"A",exp:"L3 switches do both L2 and L3."},
-  {q:"False statement about L3 switch routing?",type:"s",opts:["A: If dest MAC matches VLANIF, sends to routing","B: If dest IP not local, looks up routing","C: Forwards without re-encapsulating frame","D: Source/dest MAC replaced"],ans:"C",exp:"Must re-encapsulate frame."},
-  {q:"Switch port type to router for inter-VLAN?",type:"m",opts:["A: Hybrid","B: Trunk","C: Bridge","D: Access"],ans:"AB",exp:"Trunk or Hybrid."},
-  {q:"MAC addresses change each hop in L3 comms.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Default LACP interface priority?",type:"s",opts:["A: 4096","B: 0","C: 32768","D: 8192"],ans:"C",exp:"32768."},
-  {q:"Config that CAN differ on Eth-Trunk members?",type:"s",opts:["A: Spanning tree configurations","B: Interface rate","C: Duplex mode","D: VLAN configurations"],ans:"A",exp:"STP can differ; others must match."},
-  {q:"False statement about LACP active links?",type:"s",opts:["A: Ends exchange LACPDUs to select Actor","B: Actor selects based on priority/number","C: Actor notifies partner based on physical status","D: Partner determines based on Actor"],ans:"C",exp:"Notifies via LACPDU, not physical status."},
-  {q:"LACPDU fields to select Actor?",type:"m",opts:["A: Interface number","B: Device MAC address","C: Device priority","D: Interface priority"],ans:"BC",exp:"Device Priority then MAC."},
-  {q:"Lower threshold for active links ensures min bandwidth.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Default increment of ACL rule IDs?",type:"s",opts:["A: 20","B: 15","C: 5","D: 10"],ans:"C",exp:"5."},
-  {q:"Range of advanced ACLs?",type:"s",opts:["A: 4000-4999","B: 3000-3999","C: 2000-2999","D: 6000-6999"],ans:"B",exp:"3000-3999."},
-  {q:"ACL 4010 matches which fields?",type:"s",opts:["A: Source IP","B: Source & Dest IP","C: Source MAC, Dest MAC, L2 protocol","D: Packet header and offset"],ans:"C",exp:"L2 ACL matches MACs and L2 protocol."},
-  {q:"Rule: permit tcp source any destination 192.168.1.1 0 dest-port eq 80. Matches?",type:"m",opts:["A: Dst:192.168.1.2, Port:80, TCP","B: Dst:192.168.1.1, Port:80, UDP","C: Dst:192.168.1.1, Port:80, TCP","D: Src:10.0.0.1, Dst:192.168.1.1, Port:80, TCP"],ans:"CD",exp:"Must be TCP, Dest=192.168.1.1, Port=80."},
-  {q:"Advanced ACL can match source/dest port numbers.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Role NOT in AAA architecture?",type:"s",opts:["A: User","B: AAA server","C: Network access server(NAS)","D: Portal server"],ans:"D",exp:"Portal is not a core AAA role."},
-  {q:"RADIUS transport protocol and auth port?",type:"s",opts:["A: UDP, 1813","B: UDP, 1812","C: TCP, 1813","D: TCP, 1812"],ans:"B",exp:"UDP, 1812."},
-  {q:"Authorization mode NOT supported by AAA?",type:"s",opts:["A: Non-authorization","B: Local authorization","C: Mutual authorization","D: Remote authorization"],ans:"C",exp:"Mutual is not supported."},
-  {q:"Concepts involved in AAA?",type:"m",opts:["A: Accounting","B: Authentication","C: Authorization","D: Automation"],ans:"ABC",exp:"AuthN, AuthZ, Accounting."},
-  {q:"NAS determines domain based on username.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"NAT tech using ONLY interface address?",type:"s",opts:["A: Easy IP","B: NAT Server","C: Dynamic NAT","D: Static NAT"],ans:"A",exp:"Easy IP."},
-  {q:"NAT tech for external access to specific TCP port?",type:"s",opts:["A: Static NAT","B: NAT Server","C: Dynamic NAT","D: NAPT"],ans:"B",exp:"NAT Server."},
-  {q:"NOT translated by NAPT?",type:"m",opts:["A: Destination IP address","B: Source port number","C: Destination port number","D: Source IP address"],ans:"AC",exp:"NAPT translates Source IP & Port."},
-  {q:"NAT tech enabling external proactive access?",type:"m",opts:["A: Static NAT","B: NAT Server","C: NAPT","D: Easy IP"],ans:"AB",exp:"Static NAT and NAT Server."},
-  {q:"NAPT translates IP and port for 1:N mapping.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"802.11 protocol working ONLY on 5 GHz?",type:"s",opts:["A: 802.11ax","B: 802.11n","C: 802.11ac","D: 802.11g"],ans:"C",exp:"802.11ac (Wi-Fi 5) is 5 GHz only."},
-  {q:"CAPWAP message delivering config files?",type:"s",opts:["A: Configuration Update Request","B: Image Data Request","C: Configuration Update Response","D: Image Data Response"],ans:"A",exp:"Config Update Request."},
-  {q:"Frame type to broadcast SSID?",type:"s",opts:["A: Probe Request","B: Probe Response","C: Association Request","D: Beacon"],ans:"D",exp:"Beacon."},
-  {q:"Modes to dynamically discover AC?",type:"m",opts:["A: Manual IP","B: Broadcast","C: DHCP","D: DNS"],ans:"BCD",exp:"Broadcast, DHCP, DNS."},
-  {q:"CAPWAP tunnels both kept alive using Keepalive?",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Only Control tunnel uses Keepalive."},
-  {q:"PPPoE packet type to TERMINATE session?",type:"s",opts:["A: PADS","B: PADT","C: PADO","D: PADR"],ans:"B",exp:"PADT."},
-  {q:"LCP response to unmatched parameter?",type:"s",opts:["A: Configure-Ack","B: Configure-Reject","C: Configure-Nak","D: Authenticate-Nak"],ans:"C",exp:"Configure-Nak."},
-  {q:"Authentication protocols supported by PPP?",type:"m",opts:["A: EAP-TLS","B: PAP","C: EAP-MD5","D: CHAP"],ans:"BD",exp:"PAP and CHAP."},
-  {q:"PPP negotiation packet types?",type:"m",opts:["A: LCP","B: PAP","C: CHAP","D: IPCP"],ans:"ABCD",exp:"All listed."},
-  {q:"CHAP password carried in plaintext?",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"False, uses MD5 hash."},
-  {q:"SNMPv2c trap requiring response?",type:"s",opts:["A: Inform","B: Trap","C: Response","D: Notification"],ans:"A",exp:"Inform."},
-  {q:"SNMPv2c batch query?",type:"s",opts:["A: Get-Request","B: Get-Next-Request","C: GetBulk","D: GetContinue"],ans:"C",exp:"GetBulk."},
-  {q:"Attributes defined in MIB?",type:"m",opts:["A: Status","B: Data type","C: Access permission","D: OID"],ans:"ABCD",exp:"All listed."},
-  {q:"New SNMPv3 security features?",type:"m",opts:["A: Digital signature","B: MD5 auth","C: DES encryption","D: RSA encryption"],ans:"BC",exp:"MD5 auth and DES encryption."},
-  {q:"Devices run agent, NMS interacts via SNMP.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"IPv6 address length?",type:"s",opts:["A: 64 bits","B: 96 bits","C: 256 bits","D: 128 bits"],ans:"D",exp:"128 bits."},
-  {q:"Abbreviated version of 2001:0AF8:0000:1234:FB00:0000:5000:EF14?",type:"s",opts:["A: 2001:AF8:0000:1234:FB:0000:5000:EF14","B: 2001:0AF8::1234:FB00::5000:EF14","C: 2001:AF8:0:1234:FB00::5000:EF14","D: 2001:0AF8:0000:1234:FB00:0000:5:EF14"],ans:"C",exp:"Remove leading zeros, one :: for zeros."},
-  {q:"IPv6 header field NOT in IPv4?",type:"s",opts:["A: Payload length","B: Hop limit","C: Next header","D: Flow label"],ans:"D",exp:"Flow label."},
-  {q:"IPv6 address types?",type:"m",opts:["A: Multicast","B: Broadcast","C: Unicast","D: Anycast"],ans:"ACD",exp:"Unicast, Multicast, Anycast."},
-  {q:"IPv6 unicast: 64-bit prefix + 64-bit interface ID.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"NFV module virtualizing hardware?",type:"s",opts:["A: OSS","B: MANO","C: VNF","D: NFVI"],ans:"D",exp:"NFVI."},
-  {q:"SDN interface between controller and switch?",type:"s",opts:["A: RESTCONF","B: RESTful","C: Northbound","D: Southbound"],ans:"D",exp:"Southbound."},
-  {q:"OpenFlow packets FROM controller TO switch?",type:"m",opts:["A: Controller-to-Switch","B: Symmetric","C: Switch-to-Controller","D: Asynchronous"],ans:"AB",exp:"Controller-to-Switch and Symmetric."},
-  {q:"NFV features?",type:"m",opts:["A: Partition division","B: Isolation","C: Encapsulation","D: Hardware independence"],ans:"ABCD",exp:"All listed."},
-  {q:"OpenFlow switch forwards based on flow table.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Collection of objects with same attributes/methods?",type:"s",opts:["A: class","B: init","C: function","D: def"],ans:"A",exp:"Class."},
-  {q:"telnetlib method to WRITE data?",type:"s",opts:["A: read_all()","B: close()","C: write()","D: read_very_eager()"],ans:"C",exp:"write()."},
-  {q:"Valid Python identifiers?",type:"m",opts:["A: Digits","B: @ signs","C: Letters","D: Underscores"],ans:"ACD",exp:"Letters, digits, underscores."},
-  {q:"Compiled high-level languages?",type:"m",opts:["A: C","B: C++","C: Java","D: Python"],ans:"AB",exp:"C and C++."},
-  {q:"Python uses indentation for code blocks.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
-  {q:"Mask size for router-to-router?",type:"s",opts:["A: /28","B: /29","C: /30","D: /24"],ans:"C",exp:"/30 provides 2 usable IPs."},
-  {q:"Prevent access to unauthorized DHCP routers?",type:"s",opts:["A: IPSG","B: DHCP relay","C: DHCP snooping","D: Port security"],ans:"C",exp:"DHCP snooping."},
-  {q:"Improve campus reliability?",type:"m",opts:["A: iStack","B: CSS","C: VRRP","D: Link aggregation"],ans:"ABCD",exp:"All improve reliability."},
-  {q:"Campus network lifecycle stages?",type:"m",opts:["A: Planning","B: Deployment","C: O&M","D: Optimization"],ans:"ABCD",exp:"All listed."},
-  {q:"Servers/printers use fixed IPs.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."}
+  {q:"According to the longest match rule, which route will a packet destined for 172.16.10.1 match?",type:"s",opts:["A: 172.16.10.2/32","B: 172.16.10.0/24","C: 172.16.0.0/16","D: 172.17.10.0/24"],ans:"B",exp:"172.16.10.0/24 matches and is longest."},
+  {q:"Which of the following are link-state routing protocols?",type:"m",opts:["A: BGP","B: IS-IS","C: OSPF","D: Static route"],ans:"BC",exp:"IS-IS and OSPF are link-state."},
+  {q:"The summary route of 172.16.1.0/24, 172.16.2.0/24, and 172.16.5.0/24 is 172.16.0.0/22.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Correct summary is /21."},
+  {q:"Which of the following packets are used by OSPF to discover and maintain neighbor relationships?",type:"s",opts:["A: LSR","B: DD","C: Hello","D: LSU"],ans:"C",exp:"Hello packets."},
+  {q:"By default, what are the OSPF cost values of a serial port at 1.544 Mbit/s, FE interface, and GE interface, respectively?",type:"s",opts:["A: 64, 10, 1","B: 640, 10, 1","C: 64, 10, 1","D: 64, 1, 1"],ans:"D",exp:"Cost=100M/BW. GE rounds to 1."},
+  {q:"Which of the following tables is used by OSPF to store link status information?",type:"s",opts:["A: OSPF LSDB","B: OSPF peer table","C: OSPF routing table","D: OSPF adjacency table"],ans:"A",exp:"LSDB."},
+  {q:"Which of the following are OSPF network types?",type:"m",opts:["A: P2P","B: Broadcast","C: NBMA","D: P2MP"],ans:"ABCD",exp:"All four."},
+  {q:"On an MA network, the final state of the OSPF neighbor relationship between DR others is 2-way.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"What type of MAC address is 01-00-5e-00-00-01?",type:"s",opts:["A: Unicast MAC address","B: Multicast MAC address","C: Broadcast MAC address","D: Anycast MAC address"],ans:"B",exp:"01-00-5E is multicast."},
+  {q:"What action does a switch take by default after receiving an unknown unicast frame?",type:"s",opts:["A: Learns source MAC and discards the frame","B: Learns source MAC and floods the frame","C: Learns source MAC and forwards based on MAC table","D: Does not learn and forwards based on MAC table"],ans:"B",exp:"Learns source, floods frame."},
+  {q:"Which ARP packet is used to request the MAC address corresponding to an IP address?",type:"s",opts:["A: ARP Request","B: ARP Reply","C: RARP Request","D: RARP Reply"],ans:"A",exp:"ARP Request."},
+  {q:"Which fields are contained in an Ethernet frame in IEEE 802.3 format?",type:"m",opts:["A: Length","B: Destination MAC","C: Source MAC","D: FCS"],ans:"ABCD",exp:"All listed fields."},
+  {q:"A switch floods unknown unicast frames and frames whose destination MAC address is a broadcast MAC address.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"What is the TPID value of an 802.1Q-tagged frame?",type:"s",opts:["A: 0x0800","B: 0x8847","C: 0x8100","D: 0x0806"],ans:"C",exp:"0x8100."},
+  {q:"Which of the following is a valid VLAN ID?",type:"s",opts:["A: 0","B: 4095","C: 65536","D: 4094"],ans:"D",exp:"1-4094."},
+  {q:"Based on which of the following CANNOT VLANs be assigned?",type:"s",opts:["A: Interface","B: MAC address","C: Subnet","D: Transport-layer protocol"],ans:"D",exp:"L4 protocol not supported for VLAN."},
+  {q:"Which interfaces can process data frames carrying multiple VLAN tags?",type:"m",opts:["A: Access","B: Bridge","C: Trunk","D: Hybrid"],ans:"CD",exp:"Trunk and Hybrid."},
+  {q:"An access interface cannot process VLAN-tagged frames and immediately discards them upon receipt.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"If VID matches PVID, it's accepted."},
+  {q:"Bridge IDs of SW1–SW4 are 4096.4c1f-aabc-102a, 4096.4c1f-aabc-102b, 4096.4c1f-aabc-001a, 8192.4c1f-aabc-112b. Which is the root bridge?",type:"s",opts:["A: SW1","B: SW3","C: SW2","D: SW4"],ans:"B",exp:"SW3 has lowest MAC."},
+  {q:"What is the default Forward Delay value in STP?",type:"s",opts:["A: 30s","B: 15s","C: 20s","D: 2s"],ans:"B",exp:"15 seconds."},
+  {q:"In which sequence does a switch compare BPDU fields to select the superior BPDU?",type:"s",opts:["A: Interface ID, root ID, bridge ID, and RPC","B: RPC, root ID, bridge ID, and interface ID","C: Root ID, bridge ID, interface ID, and RPC","D: Root ID, RPC, bridge ID, and interface ID"],ans:"D",exp:"Root ID -> RPC -> Bridge ID -> Port ID."},
+  {q:"Which fields are contained in a configuration BPDU?",type:"m",opts:["A: Forward Delay","B: Port ID","C: Root ID","D: Bridge ID"],ans:"ABCD",exp:"All listed."},
+  {q:"By default, a switch runs RSTP.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True on Huawei."},
+  {q:"To implement inter-VLAN communication through sub-interfaces, which command configures VLAN termination?",type:"s",opts:["A: port default vlan vlan-id","B: port trunk pvid vlan-id","C: dot1q termination vid vlan-id","D: port link-type hybrid vlan-id"],ans:"C",exp:"dot1q termination vid."},
+  {q:"Which statement about a Layer 3 switch is FALSE?",type:"s",opts:["A: Layer 3 switch can forward packets only at Layer 3","B: Layer 3 switch can route packets through VLANIF interfaces","C: Layer 3 switch can forward packets at both Layer 2 and Layer 3","D: Layer 3 switch can route packets through Layer 3 physical interfaces"],ans:"A",exp:"L3 switches do both L2 and L3."},
+  {q:"Which statement about routing on Layer 3 switches is FALSE?",type:"s",opts:["A: If destination MAC matches VLANIF MAC, it sends to routing module","B: If destination IP is not local, it looks up the routing table","C: L3 switch forwards to next hop without re-encapsulating the frame","D: When routing at L3, source and destination MAC addresses are replaced"],ans:"C",exp:"Must re-encapsulate frame."},
+  {q:"For sub-interface inter-VLAN routing, which switch port type should connect to the router?",type:"m",opts:["A: Hybrid","B: Trunk","C: Bridge","D: Access"],ans:"AB",exp:"Trunk or Hybrid."},
+  {q:"During Layer 3 communication, source and destination MAC addresses change each time the packet passes through a Layer 3 device.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"What is the default LACP interface priority?",type:"s",opts:["A: 4096","B: 0","C: 32768","D: 8192"],ans:"C",exp:"32768."},
+  {q:"Which configuration can be different on member interfaces in an Eth-Trunk?",type:"s",opts:["A: Spanning tree configurations","B: Interface rate","C: Duplex mode","D: VLAN configurations"],ans:"A",exp:"STP can differ; others must match."},
+  {q:"Which statement about selecting active links in LACP mode is FALSE?",type:"s",opts:["A: Both ends exchange LACPDUs to select the Actor","B: Actor selects active interfaces based on LACP interface priority and interface number","C: Actor notifies partner based on physical interface status","D: Partner determines its active interfaces based on Actor's selection"],ans:"C",exp:"Notifies via LACPDU, not physical status."},
+  {q:"Which LACPDU fields are used to select the Actor?",type:"m",opts:["A: Interface number","B: Device MAC address","C: Device priority","D: Interface priority"],ans:"BC",exp:"Device Priority then MAC."},
+  {q:"Configuring the lower threshold for active interfaces in an Eth-Trunk ensures minimum required bandwidth.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"What is the default increment of ACL rule IDs?",type:"s",opts:["A: 20","B: 15","C: 5","D: 10"],ans:"C",exp:"5."},
+  {q:"What is the number range of advanced ACLs on Huawei devices?",type:"s",opts:["A: 4000-4999","B: 3000-3999","C: 2000-2999","D: 6000-6999"],ans:"B",exp:"3000-3999."},
+  {q:"If ACL number is 4010, which fields can it match?",type:"s",opts:["A: Source IP address","B: Source and destination IP address","C: Source MAC, destination MAC, and Layer 2 protocol type","D: Packet header and offset"],ans:"C",exp:"L2 ACL matches MACs and L2 protocol."},
+  {q:"Rule: 'permit tcp source any destination 192.168.1.1 0.0.0.0 destination-port eq 80'. Which packets match?",type:"m",opts:["A: Src:10.1.1.1, Dst:192.168.1.2, SrcPort:62012, DstPort:80, TCP","B: Src:10.1.1.1, Dst:192.168.1.1, SrcPort:30000, DstPort:80, UDP","C: Src:10.1.1.1, Dst:192.168.1.1, SrcPort:62012, DstPort:80, TCP","D: Src:10.0.0.1, Dst:192.168.1.1, SrcPort:30000, DstPort:80, TCP"],ans:"CD",exp:"Must be TCP, Dest=192.168.1.1, Port=80."},
+  {q:"An advanced ACL can match source/destination port numbers, enabling filtering of TCP packets with a specified destination port.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Which role is NOT included in the common AAA network architecture?",type:"s",opts:["A: User","B: AAA server","C: Network access server(NAS)","D: Portal server"],ans:"D",exp:"Portal is not a core AAA role."},
+  {q:"What are the transport layer protocol and authentication port used by RADIUS?",type:"s",opts:["A: UDP, 1813","B: UDP, 1812","C: TCP, 1813","D: TCP, 1812"],ans:"B",exp:"UDP, 1812."},
+  {q:"Which authorization mode is NOT supported by AAA?",type:"s",opts:["A: Non-authorization","B: Local authorization","C: Mutual authorization","D: Remote authorization"],ans:"C",exp:"Mutual is not supported."},
+  {q:"Which concepts are involved in AAA?",type:"m",opts:["A: Accounting","B: Authentication","C: Authorization","D: Automation"],ans:"ABC",exp:"AuthN, AuthZ, Accounting."},
+  {q:"When receiving a user access request, NAS determines the domain based on username and applies AAA schemes for that domain.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Which NAT technology can ONLY use an interface address as the post-NAT public address?",type:"s",opts:["A: Easy IP","B: NAT Server","C: Dynamic NAT","D: Static NAT"],ans:"A",exp:"Easy IP."},
+  {q:"Which NAT technology allows external users to access only a TCP port of an intranet server?",type:"s",opts:["A: Static NAT","B: NAT Server","C: Dynamic NAT","D: NAPT"],ans:"B",exp:"NAT Server."},
+  {q:"Which of the following are NOT translated by NAPT?",type:"m",opts:["A: Destination IP address","B: Source port number","C: Destination port number","D: Source IP address"],ans:"AC",exp:"NAPT translates Source IP & Port."},
+  {q:"Which NAT technologies enable external users to proactively access an intranet server?",type:"m",opts:["A: Static NAT","B: NAT Server","C: NAPT","D: Easy IP"],ans:"AB",exp:"Static NAT and NAT Server."},
+  {q:"NAPT translates both IP addresses and port numbers to implement 1:N mappings between public and private addresses.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"Which 802.11 protocol works ONLY on the 5 GHz frequency band?",type:"s",opts:["A: 802.11ax","B: 802.11n","C: 802.11ac","D: 802.11g"],ans:"C",exp:"802.11ac (Wi-Fi 5) is 5 GHz only."},
+  {q:"Which CAPWAP message type is used by an AC to deliver configuration files to APs?",type:"s",opts:["A: Configuration Update Request","B: Image Data Request","C: Configuration Update Response","D: Image Data Response"],ans:"A",exp:"Config Update Request."},
+  {q:"Which frame type does an AP use to periodically broadcast its SSID?",type:"s",opts:["A: Probe Request","B: Probe Response","C: Association Request","D: Beacon"],ans:"D",exp:"Beacon."},
+  {q:"Which modes do APs use to dynamically discover an AC?",type:"m",opts:["A: Manually specifying the AC IP address","B: Broadcast mode","C: DHCP mode","D: DNS mode"],ans:"BCD",exp:"Broadcast, DHCP, DNS."},
+  {q:"Two CAPWAP tunnels are established(data and control), both kept alive using Keepalive messages.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Only Control tunnel uses Keepalive."},
+  {q:"Which packet type does PPPoE use to TERMINATE a session?",type:"s",opts:["A: PADS","B: PADT","C: PADO","D: PADR"],ans:"B",exp:"PADT."},
+  {q:"During LCP negotiation, if a packet with unmatched parameters is received, which PPP packet type is used to respond?",type:"s",opts:["A: Configure-Ack","B: Configure-Reject","C: Configure-Nak","D: Authenticate-Nak"],ans:"C",exp:"Configure-Nak."},
+  {q:"Which authentication protocols are supported by PPP?",type:"m",opts:["A: EAP-TLS","B: PAP","C: EAP-MD5","D: CHAP"],ans:"BD",exp:"PAP and CHAP."},
+  {q:"Which packet types are used during PPP negotiation?",type:"m",opts:["A: LCP","B: PAP","C: CHAP","D: IPCP"],ans:"ABCD",exp:"All listed."},
+  {q:"During CHAP authentication, the password is carried in PPP packets in plaintext.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"False, uses MD5 hash."},
+  {q:"Which SNMPv2c packet type proactively sends traps to NMS and REQUIRES a response?",type:"s",opts:["A: Inform","B: Trap","C: Response","D: Notification"],ans:"A",exp:"Inform."},
+  {q:"Unlike SNMPv1, SNMPv2c uses which packet type to query OIDs in batches?",type:"s",opts:["A: Get-Request","B: Get-Next-Request","C: GetBulk","D: GetContinue"],ans:"C",exp:"GetBulk."},
+  {q:"Which of the following are attributes of managed devices defined in the MIB?",type:"m",opts:["A: Status of an object","B: Data type of an object","C: Access permission of an object","D: OID of an object"],ans:"ABCD",exp:"All listed."},
+  {q:"Which new security features does SNMPv3 provide over SNMPv1 and SNMPv2c?",type:"m",opts:["A: Digital signature to verify source of SNMP packets","B: MD5 algorithm for user authentication","C: DES for data encryption","D: RSA for asymmetric data encryption"],ans:"BC",exp:"MD5 auth and DES encryption."},
+  {q:"Network devices with SNMP run the agent process. NMS management process interacts with agents via SNMP packets.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"What is the length of an IPv6 address?",type:"s",opts:["A: 64 bits","B: 96 bits","C: 256 bits","D: 128 bits"],ans:"D",exp:"128 bits."},
+  {q:"What is the abbreviated version of 2001:0AF8:0000:1234:FB00:0000:5000:EF14?",type:"s",opts:["A: 2001:AF8:0000:1234:FB:0000:5000:EF14","B: 2001:0AF8::1234:FB00::5000:EF14","C: 2001:AF8:0:1234:FB00::5000:EF14","D: 2001:0AF8:0000:1234:FB00:0000:5:EF14"],ans:"C",exp:"Remove leading zeros, one :: for zeros."},
+  {q:"Which field is used in a basic IPv6 header but NOT in an IPv4 header?",type:"s",opts:["A: Payload length","B: Hop limit","C: Next header","D: Flow label"],ans:"D",exp:"Flow label."},
+  {q:"IPv6 addresses can be classified into which types based on prefix?",type:"m",opts:["A: Multicast address","B: Broadcast address","C: Unicast address","D: Anycast address"],ans:"ACD",exp:"Unicast, Multicast, Anycast."},
+  {q:"IPv6 unicast addresses consist of 64-bit network prefix and 64-bit interface ID.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"In standard NFV architecture, which module is responsible for virtualization of the underlying hardware?",type:"s",opts:["A: OSS","B: MANO","C: VNF","D: NFVI"],ans:"D",exp:"NFVI."},
+  {q:"In SDN architecture, which interface is used for communication between the controller and an SDN switch?",type:"s",opts:["A: RESTCONF interface","B: RESTful interface","C: Northbound interface","D: Southbound interface"],ans:"D",exp:"Southbound."},
+  {q:"In OpenFlow, which packet types are sent FROM the controller TO a switch?",type:"m",opts:["A: Controller-to-Switch","B: Symmetric","C: Switch-to-Controller","D: Asynchronous"],ans:"AB",exp:"Controller-to-Switch and Symmetric."},
+  {q:"Which of the following are NFV features?",type:"m",opts:["A: Partition division","B: Isolation","C: Encapsulation","D: Hardware independence"],ans:"ABCD",exp:"All listed."},
+  {q:"An OpenFlow switch forwards packets based on flow table, matching destination MAC, IP, and other packet fields.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"To improve code modularization and utilization, which is used to describe a collection of objects with the same attributes and methods?",type:"s",opts:["A: class","B: init","C: function","D: def"],ans:"A",exp:"Class."},
+  {q:"Which telnetlib method is used to WRITE data?",type:"s",opts:["A: read_all()","B: close()","C: write()","D: read_very_eager()"],ans:"C",exp:"write()."},
+  {q:"Which characters can be used as Python identifiers?",type:"m",opts:["A: Digits","B: @ signs","C: Letters","D: Underscores"],ans:"ACD",exp:"Letters, digits, underscores."},
+  {q:"Which are compiled high-level programming languages?",type:"m",opts:["A: C","B: C++","C: Java","D: Python"],ans:"AB",exp:"C and C++."},
+  {q:"Python programs use indentation to represent code blocks. Statements in the same block must have the same number of indented spaces.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  {q:"To conserve IP addresses on router-to-router connections in enterprise networks, what mask size is used?",type:"s",opts:["A: /28","B: /29","C: /30","D: /24"],ans:"C",exp:"/30 provides 2 usable IPs."},
+  {q:"Which function on access switches prevents employees from accessing unauthorized DHCP-enabled routers?",type:"s",opts:["A: IPSG","B: DHCP relay","C: DHCP snooping","D: Port security"],ans:"C",exp:"DHCP snooping."},
+  {q:"Which technologies improve campus network reliability?",type:"m",opts:["A: iStack","B: CSS","C: VRRP","D: Link aggregation"],ans:"ABCD",exp:"All improve reliability."},
+  {q:"Which of the following are stages in the lifecycle of a campus network project?",type:"m",opts:["A: Planning and design","B: Deployment and implementation","C: Network O&M","D: Network optimization"],ans:"ABCD",exp:"All listed."},
+  {q:"Certain terminals, such as servers and printers, can be allocated fixed IP addresses.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True."},
+  // Mock Exam Questions
+  {q:"Which of the following port numbers is used by the Telnet protocol?",type:"s",opts:["A: 6","B: 17","C: 21","D: 23"],ans:"D",exp:"Telnet uses TCP port 23."},
+  {q:"As shown in the following networking, R1-R4 interfaces are running OSPF in area 0. On R1, a static route to 10.1.34.0/24 is configured via 'ip route-static 10.1.34.0 24 10.1.13.32'. Which statement is true?",type:"s",opts:["A: R1 routing table has OSPF route to 10.1.34.0/24, next hop 10.1.12.21","B: R1 routing table has only the OSPF route to 10.1.34.0/24, next hop 10.1.13.32","C: R1 routing table has only the static route to 10.1.34.0/24","D: R1 routing table has both static and OSPF routes to 10.1.34.0/24"],ans:"B",exp:"OSPF internal preference=10 is better than static preference=60. Only the OSPF route is installed."},
+  {q:"The establishment of OSPF adjacency involves four steps. Which statement about these steps is true?",type:"s",opts:["A: Devices establish bidirectional neighbor relationships, negotiate master/slave, exchange LSAs, update LSAs, and synchronize LSDBs","B: Devices negotiate master/slave, establish bidirectional neighbor relationships, exchange LSAs, update LSAs, and synchronize LSDBs","C: Devices negotiate master/slave, exchange LSAs, establish bidirectional neighbor relationships, updateLSAs, and synchronize LSDBs","D: Devices exchange LSAs, negotiate master/slave, establish bidirectional neighbor relationships, update LSAs, and synchronize LSDBs"],ans:"A",exp:"Correct OSPF adjacency steps order."},
+  {q:"NTP is used to synchronize computer clocks. Which statement about NTP is false?",type:"s",opts:["A: Master time server synchronizes with standard reference clock through cables or radio signals","B: NTP is a network layer protocol in the TCP/IP protocol suite","C: NTP packets are transmitted through UDP","D: Stratum value 1 indicates the highest clock precision"],ans:"B",exp:"NTP is an APPLICATION layer protocol."},
+  {q:"Which statement about ping and tracert commands is false?",type:"s",opts:["A: The 'ping -s source-ip destination-ip' command specifies source and destination IP of ICMP Echo Request packets","B: The source IP address of packets can be specified in the tracert command","C: The ping command checks connectivity to a destination","D: The tracert command checks gateways packets pass through before reaching the destination"],ans:"A",exp:"Ping uses '-a source-ip', not '-s'."},
+  {q:"VRP uses the file system to manage files and directories. Which command checks the current directory?",type:"s",opts:["A: pwd","B: ls","C: dir","D: display dir"],ans:"A",exp:"'pwd' prints the working directory in VRP."},
+  {q:"How many bytes does an MPLS label contain?",type:"s",opts:["A: 3 bytes","B: 1 byte","C: 4 bytes","D: 2 bytes"],ans:"C",exp:"MPLS label= 4 bytes(32 bits)."},
+  {q:"Which of the following is NOT a method for an AP to discover an AC address?",type:"s",opts:["A: DHCP","B: OSPF","C: Static configuration","D: Broadcast","E: DNS"],ans:"B",exp:"OSPF is a routing protocol, not an AC discovery method."},
+  {q:"Which AP authentication method is NOT supported by an AC?",type:"s",opts:["A: Serial number authentication","B: MAC address authentication","C: Non-authentication","D: Password authentication"],ans:"D",exp:"Password authentication is not supported."},
+  {q:"Which statement about VRP system files is true?",type:"s",opts:["A: PAF file controls product features and resources. Common extension: .bin","B: System software is mandatory for device startup. Common extension: .cfg","C: Patch file is compatible with system software. Common extension: .zip","D: Configuration file stores configuration commands. Common extension: .cc"],ans:"A",exp:"PAF controls features (.bin)."},
+  {q:"What is the valid VLAN ID range?",type:"s",opts:["A: 1 to 4095","B: 1 to 4094","C: 0 to 4094","D: 0 to 4095"],ans:"B",exp:"Valid range: 1-4094."},
+  {q:"Which statement about STP and RSTP is false?",type:"s",opts:["A: Five STP port states: Forwarding, Learning, Listening, Blocking, Disabled","B: RSTP converges faster than STP","C: Three RSTP port states: Forwarding, Learning, and Blocking","D: RSTP is backward compatible with STP"],ans:"C",exp:"RSTP uses Discarding, not Blocking."},
+  {q:"Given ACL config: time-range satime 08:00 to 17:30 working-day acl number 3002 rule 5 permit ip source 10.164.2.0 0.0.0.255 destination 10.164.9.9 0.0.0.255 time-range satime Which statement is true?",type:"s",opts:["A: This is a user ACL","B: All packets from 10.164.2.0/24 will be permitted","C: The ACL rule takes effect only on working days","D: This is a basic ACL"],ans:"C",exp:"ACL 3002= Advanced ACL. time-range restricts rule to working days."},
+  {q:"Which state indicates a stable neighbor relationship between OSPF DR-other routers on a broadcast network?",type:"s",opts:["A: Full","B: Two-way","C: Down","D: Loading"],ans:"B",exp:"DR-Other to DR-Other= 2-Way state."},
+  {q:"Which statement about WLAN networking is false?",type:"s",opts:["A: BSSID identifies a wireless network and is represented using AP's MAC address","B: SSID identifies a wireless network and is a character string","C: All VAPs on the same AP have the same BSSID","D: BSS indicates an area covered by an AP"],ans:"C",exp:"Each VAP has its OWN unique BSSID."},
+  {q:"Five routers running OSPF on same Ethernet segment. When stable, which statement is true?",type:"s",opts:["A: All neighbor relationships are in 2-way state","B: DR-to-router relationship can be Full or 2-way","C: Neighbor status of a router can only be Full or 2-way","D: Neighbor status of all routers is Full"],ans:"C",exp:"Only Full or 2-Way states exist."},
+  {q:"What is the network ID for 192.168.1.1/29?",type:"s",opts:["A: 192.168.1.0","B: 192.168.1.7","C: 192.168.1.4","D: 192.168.1.255"],ans:"A",exp:"/29 mask= 255.255.255.248. Range: .0-.7."},
+  {q:"MAC table: 00-01-02-03-04-AA on G0/0/1, 00-01-02-03-04-CC on G0/0/3. Frame 1(dst BB) received on G0/0/1; Frame 2(dst CC) received on G0/0/3. How does switch process both?",type:"s",opts:["A: Forwards first, floods second","B: Floods first, discards second","C: Forwards first, discards second","D: Floods first, forwards second"],ans:"B",exp:"Frame 1(BB unknown) → FLOOD. Frame 2(CC known on G0/0/3, ingress=G0/0/3) → same port as destination → DISCARD."},
+  {q:"Config: [huawei]user-interface maximum-vty 7. Which statement is true?",type:"s",opts:["A: Max 7 users via asynchronous serial port","B: User locked after 7 failed login attempts","C: Max 7 users via console port","D: Max 7 users via Telnet concurrently"],ans:"D",exp:"Sets max concurrent VTY(Telnet/SSH) sessions."},
+  {q:"Which protocol is NOT a network layer protocol in TCP/IP?",type:"s",opts:["A: IGMP","B: IPv4","C: ICMP","D: PPP"],ans:"D",exp:"PPP is a Data Link layer(L2) protocol."},
+  {q:"Which value cannot be set as bridge priority in STP?",type:"s",opts:["A: 22528","B: 0","C: 16384","D: 8192"],ans:"A",exp:"Bridge priority must be a multiple of 4096."},
+  {q:"Which command checks OSPF LSDB on a Huawei device?",type:"s",opts:["A: display ospf lsdb","B: display ospf routing","C: display ospf brief","D: display ospf peer"],ans:"A",exp:"'display ospf lsdb' shows the Link State Database."},
+  {q:"Which statement about DNS is false?",type:"s",opts:["A: DNS supports recursive query","B: DNS server maintains domain-to-IP mappings and responds to resolver requests","C: DNS supports traversal query","D: Domain name can be used to identify a host"],ans:"C",exp:"DNS supports recursive and iterative queries. 'Traversal query' is not a valid term."},
+  {q:"Which is the most widely used VLAN assignment method?",type:"s",opts:["A: MAC address-based","B: IP subnet-based","C: Protocol-based","D: Interface-based"],ans:"D",exp:"Interface(port)-based VLAN assignment is simplest and most widely deployed."},
+  {q:"Router has 4 routes: 10.1.20.0/24, 10.1.21.0/24, 10.1.22.0/24, 10.1.23.0/24, all via 12.1.1.2. Which summary command to run?",type:"s",opts:["A: ip route-static 10.1.0.0 16 12.1.1.2","B: ip route-static 10.1.20.0 23 12.1.1.2","C: ip route-static 10.1.20.0 22 12.1.1.2","D: ip route-static 10.1.16.0 21 12.1.1.2"],ans:"C",exp:"10.1.20-23 in binary: 000101xx. Common prefix= 22 bits. Summary= 10.1.20.0/22."},
+  {q:"In which mode are DHCP Discover messages sent?",type:"s",opts:["A: Broadcast","B: Multicast","C: Unicast","D: Anycast"],ans:"A",exp:"DHCP Discover is broadcast because client doesn't know DHCP server IP yet."},
+  {q:"Which protocol is an EGP (Exterior Gateway Protocol)?",type:"s",opts:["A: BGP","B: OSPF","C: RIP","D: IS-IS"],ans:"A",exp:"BGP routes between Autonomous Systems(EGP)."},
+  {q:"What is the length range of an Ethernet frame?",type:"s",opts:["A: 64 to 1500 bytes","B: 46 to 1500 bytes","C: 64 to 1518 bytes","D: 46 to 1518 bytes"],ans:"C",exp:"IEEE 802.3: min 64 bytes, max 1518 bytes."},
+  {q:"Which statement about IPv6 addresses is false?",type:"s",opts:["A: Global unicast address(GUA) is globally unique","B: Each IPv6 interface must have a unique local address(ULA)","C: IPv6 address with prefix FE80::/10 is a link-local address(LLA)","D: There may be ULA conflicts in a global scope"],ans:"B",exp:"ULA is optional. Link-local address is mandatory, not ULA."},
+  {q:"Which of the following is NOT an IPv6 address type?",type:"s",opts:["A: Multicast address","B: Anycast address","C: Broadcast address","D: Unicast address"],ans:"C",exp:"IPv6 has Unicast, Multicast, Anycast. NO broadcast."},
+  {q:"For IPv6 address 2000:002A:0000:0000:0000:000A:020C:023D, which comply with abbreviation rules?",type:"m",opts:["A: 2000:2A::A:20C:23D","B: 2000:2A:0:0:0:A:20C:23D","C: 2000:2A:0:0:0:A:2C:23D","D: 2000:2A::A:2C:23D"],ans:"AB",exp:"A and B comply. C/D wrong(020C= 20C, not 2C)."},
+  {q:"Config: VTY 0, user privilege level 2. Which statements are true?",type:"m",opts:["A: User can use service configuration commands including routing config","B: User can use some display commands","C: User can use debugging command","D: User can use ping and tracert commands"],ans:"ABD",exp:"Level 2= monitoring: display commands(B), ping/tracert(D). Exam answer is ABD."},
+  {q:"Which statements about IP and MAC addresses are true?",type:"m",opts:["A: MAC addresses are unchangeable","B: IP addresses are assigned based on network topology","C: IP addresses are unchangeable","D: MAC addresses are assigned based on vendors"],ans:"ABD",exp:"MAC: hardware-burned, globally unique(A), OUI assigned by IEEE to vendors(D). IP: logically assigned by topology(B), CAN be changed(C is wrong)."},
+  {q:"Which IP addresses are private?",type:"m",opts:["A: 192.168.1.1/30","B: 172.33.1.1/30","C: 10.0.1.1/30","D: 172.16.1.1/30"],ans:"ACD",exp:"Private ranges: 10.0.0.0/8, 172.16.0.0/12(172.16-172.31), 192.168.0.0/16. B(172.33) is public."},
+  {q:"Which statements about OSPF default route advertisement are false?",type:"m",opts:["A: The preference of the advertised default route is 10","B: After learning the default route, other routers must add it to their routing tables","C: default-route-advertise works only when a default route exists on local device","D: default-route-advertise always can advertise even without a local default route"],ans:"AB",exp:"A false: OSPF external routes have preference 150, not 10. B false: routers learn it but only install it if it's best."},
+  {q:"Which are IPv6 address types?",type:"m",opts:["A: Unicast address","B: Broadcast address","C: Anycast address","D: Multicast address"],ans:"ACD",exp:"IPv6: Unicast, Anycast, Multicast. NO Broadcast."},
+  {q:"For IPv6 address 2001:0DB8:0000:1234:FB00:0000:5000:45FF, which comply with abbreviation rules?",type:"m",opts:["A: 2001:DB8:0:1234:FB00::5000:45FF","B: 2001:DB8::1234:FB00:0:5000:45FF","C: 2001:DB8:0:1234:FB00:0:5000:45FF","D: 2001:DB8:0:1234:FB00:5:45FF"],ans:"ABC",exp:"A::: replaces group 5. B::: replaces group 3. C: only leading zeros removed. D: Wrong — drops a group."},
+  {q:"Which are wireless network types based on application scope?",type:"m",opts:["A: WMAN","B: WLAN","C: WWAN","D: WPAN"],ans:"ABCD",exp:"WPAN, WLAN, WMAN, WWAN are all application-scope wireless types."},
+  {q:"Gateway config: nat outbound 2000 on GigabitEthernet 0/0/0. Host 192.168.1.1/24 accesses server 160.131.20.1. Which statements are true?",type:"m",opts:["A: 192.168.1.1 will be translated to the interface GigabitEthernet 0/0/0 IP address","B: 192.168.1.1 will be translated to an IP from a public address pool","C: The administrator configures NAT Server","D: The administrator configures Easy IP"],ans:"AD",exp:"nat outbound without a pool= Easy IP. A & D correct."},
+  {q:"Which components are included in the standard NFV architecture?",type:"m",opts:["A: OS","B: NFVI","C: VNF","D: MANO"],ans:"BCD",exp:"NFV= NFVI + VNF + MANO. OS is not a distinct component."},
+  {q:"Which of the following statements about VLAN trunk ports is true?",type:"m",opts:["A: A trunk port can carry frames from multiple VLANs","B: Frames belonging to the PVID VLAN are sent untagged by default on trunk ports","C: A trunk port can only carry tagged frames","D: A trunk port adds a VLAN tag to untagged incoming frames based on the PVID"],ans:"ABD",exp:"Trunk ports carry multiple VLANs. PVID VLAN frames are sent untagged by default."},
+  {q:"Which of the following statements about NAT are true?",type:"m",opts:["A: Static NAT implements one-to-one mapping between public and private IP addresses","B: NAPT translates both IP addresses and port numbers","C: Easy IP requires a configured address pool","D: NAT Server allows external users to access internal servers"],ans:"ABD",exp:"Static NAT: 1:1. NAPT: IP+port. Easy IP: uses interface IP, NO pool. NAT Server: port forwarding."},
+  {q:"Which of the following statements about PPP are true?",type:"m",opts:["A: PPP supports both PAP and CHAP authentication","B: PPP uses LCP to establish and configure the link","C: PPP is a network layer protocol","D: PPP uses NCP to negotiate network layer parameters"],ans:"ABD",exp:"PPP supports PAP/CHAP, uses LCP, uses NCP. PPP is Data Link layer, not network layer."},
+  {q:"Which of the following are features of RSTP compared to STP?",type:"m",opts:["A: RSTP introduces the Alternate port role","B: RSTP achieves faster convergence than STP","C: RSTP uses the same port states as STP","D: RSTP introduces the Backup port role"],ans:"ABD",exp:"RSTP adds Alternate and Backup ports for faster convergence. RSTP reduces port states from 5 to 3."},
+  {q:"Which of the following statements about OSPF areas are true?",type:"m",opts:["A: All OSPF areas must connect to area 0(backbone area)","B: An ABR connects two or more OSPF areas","C: OSPF can only have one area","D: An ASBR connects the OSPF AS to another routing domain"],ans:"ABD",exp:"Area 0 is backbone. ABR connects areas. OSPF supports multiple areas. ASBR connects to external domains."},
+  {q:"Which of the following are methods used in AAA authentication?",type:"m",opts:["A: Local authentication","B: Remote authentication via RADIUS","C: Mutual authentication","D: Non-authentication"],ans:"ABD",exp:"AAA authentication methods: Local, Remote, Non-authentication. Mutual is not standard."},
+  {q:"Which of the following statements about Eth-Trunk(Link Aggregation) are true?",type:"m",opts:["A: Eth-Trunk increases bandwidth by bundling multiple links","B: Eth-Trunk provides link redundancy","C: Member interfaces in an Eth-Trunk can have different speeds","D: LACP mode uses LACP protocol to negotiate active links"],ans:"ABD",exp:"Eth-Trunk: increases bandwidth, provides redundancy, uses LACP. Member interfaces MUST have the same speed."},
+  {q:"Which of the following statements about SNMP are true?",type:"m",opts:["A: SNMPv3 provides authentication and encryption","B: SNMP uses UDP as transport protocol","C: SNMPv1 supports the GetBulk operation","D: The NMS sends Get requests to retrieve MIB data from agents"],ans:"ABD",exp:"SNMPv3: auth+encryption. SNMP: UDP. GetBulk introduced in SNMPv2c, not v1. NMS uses Get/Set."},
+  {q:"Which of the following statements about STP BPDU comparison are true?",type:"m",opts:["A: Root ID is compared first","B: Root Path Cost is compared second","C: Sender Bridge ID is compared third","D: Hello Time is compared fourth"],ans:"ABC",exp:"BPDU comparison: Root ID, Root Path Cost, Sender Bridge ID, Sender Port ID."},
+  {q:"Which statements about Layer 2 hybrid ports are true?",type:"m",opts:["A: After receiving a tagged frame, a hybrid port checks if VID is in tagged/untagged list. If not, theport discards the frame","B: When receiving an untagged frame, a hybrid port adds a tag with the PVID and forwards theframe","C: When sending a tagged frame with VID in untagged list, the port removes the tag","D: When sending a tagged frame with VID in tagged list, the port sends without removing tag"],ans:"ACD",exp:"Hybrid port behavior: discards unknown VID, sends untagged for VIDs in untagged list, tagged for tagged list."},
+  {q:"Switches can implement communication between homogeneous networks or communication between heterogeneous networks and isolate broadcast domains.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Switches operate at L2 and connect HOMOGENEOUS networks only. Routers connect heterogeneous networks."},
+  {q:"Frames transmitted on the trunk link between switches are all tagged.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"On a trunk link, frames belonging to the native/PVID VLAN are sent UNTAGGED by default."},
+  {q:"In STP, a non-root-bridge switch can have two root ports.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Each non-root bridge has exactly ONE root port."},
+  {q:"In an OSPF AS, a router can function as both an ABR and an ASBR.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True. A router can be both ABR and ASBR."},
+  {q:"The precision of telemetry-based traffic statistics collection can be measured in milliseconds.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Telemetry can achieve sub-second precision, often microseconds or nanoseconds."},
+  {q:"FTP is a file transfer protocol and works in active or passive mode.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"FTP operates in two modes: Active and Passive."},
+  {q:"AAA is short for authentication, authorization, and application.",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"AAA stands for Authentication, Authorization, and ACCOUNTING."},
+  {q:"Specific routes can be summarized into a summary route only when they have the same next-hop address.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True. Route summarization requires the specific routes to share the same next-hop address."},
+  {q:"The PVID of a trunk port on a switch may not be the ID of a VLAN that is allowed for the port.",type:"tf",opts:["A: Right","B: Wrong"],ans:"A",exp:"True. It is possible, though unusual."},
+  {q:"Before sending an IPv6 packet, an interface performs operations in this order: address configuration, address resolution, and duplicate address detection(DAD).",type:"tf",opts:["A: Right","B: Wrong"],ans:"B",exp:"Correct order is: Address configuration, DAD, Address resolution. The statement swaps DAD and resolution."}
 ];
 
 let currentQs = [];
-let userAnswers = {}; // Stores index -> string of letters "A" or "AC"
+let userAnswers = {};
 let currentIndex = 0;
 let isFinished = false;
-let startTime = null;
 
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -252,7 +308,6 @@ function initTest() {
   userAnswers = {};
   currentIndex = 0;
   isFinished = false;
-  startTime = new Date();
   document.getElementById('quiz-view').classList.remove('hidden');
   document.getElementById('results-view').classList.add('hidden');
   document.getElementById('next-btn').textContent = 'Next Question →';
@@ -268,7 +323,6 @@ function getHintText(type) {
 function renderQuestion() {
   const q = currentQs[currentIndex];
   
-  // UI Updates
   document.getElementById('q-counter').textContent = `${currentIndex + 1} / ${currentQs.length}`;
   document.getElementById('progress-track').style.width = `${((currentIndex + 1) / currentQs.length) * 100}%`;
   
@@ -294,7 +348,6 @@ function renderQuestion() {
     
     const isSelected = currentAns.includes(label);
     
-    // Styling based on selection state and type
     let styleClass = "border-slate-200 bg-white hover:border-blue-300";
     if (isSelected) {
       if (q.type === 'm') {
@@ -304,13 +357,9 @@ function renderQuestion() {
       }
     }
     
-    // Checkbox/Radio indicator
-    const checkIcon = q.type === 'm' ? 'checkbox' : 'radio';
-    
     const btn = document.createElement('button');
     btn.className = `opt-card w-full text-left px-5 py-4 border-2 rounded-xl text-sm font-medium flex items-start gap-4 transition-all duration-200 ${styleClass}`;
     
-    // Updated indicator logic: Square (rounded) for Multi, Circle (rounded-full) for Single/TF
     const isRound = q.type === 'm' ? 'rounded' : 'rounded-full';
     const indicatorClass = `w-6 h-6 shrink-0 flex items-center justify-center ${isRound} mt-0.5`;
     
@@ -330,15 +379,13 @@ function renderQuestion() {
         btn.onclick = () => {
             let ans = userAnswers[currentIndex] || "";
             if (q.type === 'm') {
-                // Toggle for multi
                 if (ans.includes(label)) {
                     ans = ans.replace(label, "");
                 } else {
                     ans += label;
-                    ans = ans.split('').sort().join(''); // Keep sorted
+                    ans = ans.split('').sort().join('');
                 }
             } else {
-                // Set for single/tf
                 ans = label;
             }
             userAnswers[currentIndex] = ans;
@@ -351,7 +398,6 @@ function renderQuestion() {
     optsArea.appendChild(btn);
   });
   
-  // Nav buttons
   document.getElementById('prev-btn').disabled = currentIndex === 0;
   document.getElementById('next-btn').textContent = currentIndex === currentQs.length - 1 ? 'Finish' : 'Next Question →';
 }
@@ -398,7 +444,8 @@ function showResults() {
     const isCorrect = u === c;
     
     const card = document.createElement('div');
-    card.className = `bg-white p-5 rounded-xl border ${isCorrect ? 'border-green-200 shadow-sm' : 'border-red-200 shadow-sm'} slide-up`;
+    card.className = `bg-white p-5 rounded-xl border ${isCorrect ? 'border-green-200 shadow-sm' : 'border-red-200 shadow-sm'} fade-in`;
+    card.style.animationDelay = `${i * 0.05}s`;
     card.innerHTML = `
       <div class="flex justify-between items-start mb-2">
         <h4 class="font-medium text-slate-800 pr-4">${i+1}. ${q.q}</h4>
